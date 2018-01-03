@@ -1,0 +1,52 @@
+@prefix void: <http://rdfs.org/ns/void#> .
+@prefix rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#> .
+@prefix rdfs: <http://www.w3.org/2000/01/rdf-schema#> .
+@prefix owl: <http://www.w3.org/2002/07/owl#> .
+@prefix xsd: <http://www.w3.org/2001/XMLSchema#> .
+@prefix dc: <http://purl.org/dc/terms/> .
+@prefix foaf: <http://xmlns.com/foaf/0.1/> .
+@prefix wv: <http://vocab.org/waiver/terms/norms> .
+@prefix sd: <http://www.w3.org/ns/sparql-service-description#> .
+@prefix skos: <http://www.w3.org/2004/02/skos/core#> .
+@prefix skosmos: <http://purl.org/net/skosmos#> .
+@prefix isothes: <http://purl.org/iso25964/skos-thes#> .
+@prefix mdrtype: <http://publications.europa.eu/resource/authority/dataset-type/> .
+@prefix : <#> .
+
+:unesco a skosmos:Vocabulary, void:Dataset ;
+    dc:title "UNESCO Thesaurus"@en ;
+    skosmos:shortName "UNESCO";
+    dc:subject :cat_general ;
+    void:uriSpace "http://skos.um.es/unescothes/";
+    skosmos:language "en", "es", "fr", "ru";
+    skosmos:defaultLanguage "en";
+    skosmos:showTopConcepts true ;
+    skosmos:groupClass isothes:ConceptGroup ;
+    void:sparqlEndpoint <http://localhost:3030/skosmos/sparql> ;
+    skosmos:sparqlGraph <http://skos.um.es/unescothes/> .
+
+:stw a skosmos:Vocabulary, void:Dataset ;
+    dc:title "STW Thesaurus for Economics"@en ;
+    skosmos:shortName "STW";
+    dc:subject :cat_general ;
+    void:uriSpace "http://zbw.eu/stw/";
+    skosmos:language "en", "de";
+    skosmos:defaultLanguage "de";
+    void:sparqlEndpoint <http://localhost:3030/skosmos/sparql> ;
+    skosmos:sparqlGraph <http://zbw.eu/stw/> .
+
+:categories a skos:ConceptScheme;
+	skos:prefLabel "Skosmos Vocabulary Categories"@en .
+
+:cat_general a skos:Concept ;
+	skos:topConceptOf :categories ;
+	skos:inScheme :categories ;
+	skos:prefLabel "Yleiskäsitteet"@fi,
+		"Allmänna begrepp"@sv,
+		"General concepts"@en .
+
+mdrtype:THESAURUS a skos:Concept ;
+	skos:prefLabel "Тезаурус"@bg, "Tezaurus"@cs, "Tesaurus"@da, "Thesaurus"@de, "Θησαυρός"@el, "Thesaurus"@en, "Tesaurus"@et, "Tesaurus"@fi, "Thésaurus"@fr, "Pojmovnik"@hr, "Tezaurusz"@hu, "Tesauro"@it, "Tēzaurs"@lv, "Tezauras"@lt, "Teżawru"@mt, "Thesaurus"@nl, "Tesaurus"@no, "Tezaurus"@pl, "Tesauro"@pt, "Tezaur"@ro, "Synonymický slovník"@sk, "Tezaver"@sl, "Tesauro"@es, "Tesaurus"@sv .
+
+mdrtype:ONTOLOGY a skos:Concept ;
+    skos:prefLabel "Онтология"@bg, "Ontologie"@cs, "Ontologi"@da, "Ontologie"@de, "Οντολογία"@el, "Ontology"@en, "Ontoloogia"@et, "Ontologia"@fi, "Ontologie"@fr, "Ontologija"@hr, "Ontológia"@hu, "Ontologia"@it, "Ontoloģija"@lv, "Ontologija"@lt, "Ontoloġija"@mt, "Ontologie"@nl, "Ontologi"@no, "Struktura pojęciowa"@pl, "Ontologia"@pt, "Ontologie"@ro, "Ontológia"@sk, "Ontologija"@sl, "Ontología"@es, "Ontologi"@sv .

@@ -1,0 +1,216 @@
+{% if vocab.title != null or search_results != null %}
+  {% if search_results %}
+    {% for concept in search_results %} {# loop through the hits #}
+    {% if concept.deprecated %}
+    <div class="alert alert-danger">
+      <h2 class="deprecated-alert">{% trans %}deprecated{% endtrans %}</h2>
+    </div>
+    {% endif %}
+    {% if concept.label.lang != request.contentLang %}
+    <div class="alert alert-lang">
+      <h2 class="language-alert">{% trans %}There is no term for this concept in this language{% endtrans %}</h2>
+    </div>
+    {% endif %}
+    <div class="concept-info{% if concept.deprecated %} deprecated-concept{% endif %}">
+      <div class="concept-main">
+      {% if bread_crumbs is defined %}
+        {% for path in bread_crumbs %}
+        {% if path|length > 1 %}
+          {% set crumbId = loop.index %}
+            <div class="crumb-path">
+            {% for crumb in path %}
+            {% if not loop.last %}<a class="propertyvalue bread-crumb{% if crumb.hiddenLabel %} expand-crumbs{% endif %}" href="{{ crumb.uri|link_url(vocab,request.lang,'page',request.contentLang) }}">{{ crumb.prefLabel }}</a><span class="bread-crumb"> > </span>
+            {% else %}<span class="bread-crumb propertylabel-pink">{{ crumb.prefLabel }}</span>
+            {% endif %}
+            {% if crumb.hiddenLabel %}
+              {% for hiddenPath in combined %}
+                {% if crumbId == loop.index %}
+                  {% for hiddenCrumb in hiddenPath %}
+                  <a class="propertyvalue hidden-breadcrumb" href="{{ hiddenCrumb.uri|link_url(vocab,request.lang,'page',request.contentLang) }}">{{ hiddenCrumb.hiddenLabel }}</a><span class="hidden-breadcrumb"> > </span>
+                  {% endfor %}
+                {% endif %}
+              {% endfor %}
+            {% endif %}
+            {% endfor %}
+            </div>
+          {% endif %}
+        {% endfor %}
+      {% endif %}
+      {% spaceless %}
+      <div class="row{% if concept.type == 'skosext:DeprecatedConcept' %} deprecated{% endif %}">
+        <div class="property-label property-label-pref">
+          <span class="versal">{{ 'skos:prefLabel'|trans|upper }}</span>
+        </div>
+        {% if concept.foundBy %} {# hit has been found through an alternative label #}
+        <span class="versal">{{ concept.foundBy }} >></span>
+        {% if concept.ExVocab is defined %}
+        <span class="prefLabel conceptlabel redirected-vocab-id"> @{{ concept.ExVocab }}</span>
+        {% endif %}
+      </div>
+      {% else %}
+      <div class="property-value-column">{% if concept.notation %}<span class="notation">{{ concept.notation }}</span>{% endif %}
+        <span class="prefLabel conceptlabel">{{ concept.label }}</span>
+      </div>
+      {% endif %}
+        <div class="col-md-12"><div class="preflabel-spacer"></div></div>
+      </div>
+      {% endspaceless %}
+      {% for property in concept.properties %} {# loop through ConceptProperty objects #}
+        {% if property.getSubPropertyOf != 'skos:hiddenLabel' %}
+        <div class="row{% if property.type == 'dc:isReplacedBy' %} replaced-by{% endif%}">
+          <div class="property-label">
+            <span class="versal{% if property.type == 'rdf:type' %}-bold{% endif %}{% if not (property.type in property.description and '_help' in property.description) %} property-click" title="{{ property.description }}"{% else %}"{% endif %}>{{ property.label|upper }}</span>
+          </div>
+          <div class="property-value-column"><div class="property-value-wrapper">
+        {% if request.vocab.config.hasMultiLingualProperty(property.type) %}
+          {% set prevlang = '' %}{# Only displaying the language when it appears for the very first time #}
+          {% for language,labels in concept.allLabels(property.type) %}
+            {% for value in labels %}
+            <div class="row other-languages{% if prevlang != language %} first-of-language{% endif %}"><span class="versal col-xs-6{% if value.type == "skos:altLabel" %} replaced{% endif %}">{{ value.label }}</span><span class="versal col-xs-6">{% if prevlang != language %} {{ language }}{% endif %}</span></div>
+            {% set prevlang = language %}
+            {% endfor %}
+          {% endfor %}
+        {% else %}
+        <ul>
+        {% for propval in property.values %} {# loop through ConceptPropertyValue objects #}
+            <li>
+            {% if propval.uri and propval.type != 'rdf:type' %} {# resources with URI #}
+              {% if propval.label %}
+                {% if propval.isExternal %}
+                <a href="{{ propval.uri }}">{{ propval.uri }}</a>
+                {% else %}
+                {% if propval.isReified %} {# e.g. skos:definition's with resource values #}
+                <span class="versal reified-property-value"><img src="resource/pics/about.png">{% if propval.notation %}<span class="versal">{{ propval.notation }} </span>{% endif %} {{ propval.label(request.contentLang) }}</span>
+                <div class="reified-tooltip">{% for key, val in propval.reifiedPropertyValues %}<p>{{ key }}: <a href="{{ val.uri | link_url(val.exvocab, request.lang, 'page', request.contentLang) }}">{{ val.label(request.contentLang) }}</a></p>{% endfor %}</div>
+                    
+                {% else %}
+                    <a href="{{ propval.uri | link_url(propval.vocab, request.lang, 'page', request.contentLang) }}">{% if propval.notation %}<span class="versal">{{ propval.notation }} </span>{% endif %} {{ propval.label(request.contentLang) }}</a>
+                {% endif %}
+                {% endif %}
+                {% if propval.lang and (propval.lang != request.lang or explicit_langcodes) %}<span class="versal"> ({{ propval.label.lang }})</span>{% endif %}
+                {% if propval.SubMembers %}<div class="subvalue"> {# if property is a group concept that has sub properties #}
+                  {% for sub_member in propval.SubMembers %}
+                    <a class="propertyvalue" href="{{ sub_member.uri | link_url(propval.vocab,request.lang) }}">{{ sub_member.label(request.contentLang) }}</a>
+                    {% if sub_member.lang and (sub_member.lang != request.lang or explicit_langcodes) %}<span class="propertyvalue"> ({{ sub_member.lang }})</span>{% endif %}
+                    <br />
+                  {% endfor %}
+                  </div>
+                {% endif %}
+              {% endif %}
+            {% elseif property.type == 'rdf:type' %}<p>{{ propval.label|trans }}</p>
+            {% else %} {# Literals (no URI), eg. alternative labels as properties #}
+                {% if propval.lang == request.contentLang or propval.lang == null or not request.contentLang and propval.lang == request.lang %}
+                <p{% if property.type == 'skos:altLabel' %} class="replaced"{% endif %}>{% if propval.containsHtml %}{{ propval.label|raw }}{% else %}{{ propval.label }}{% endif %}{% if propval.lang and (request.contentLang and propval.lang != request.contentLang or explicit_langcodes) %} ({{ propval.lang }}){% endif %}</p>
+                {% endif %}
+            {% endif %}
+            </li>
+        {% endfor %}
+        </ul>
+        {% endif %}
+        </div></div></div>
+        {% endif %}
+      {% endfor %}
+      {% if concept.groupProperties %}
+      <div class="row">
+        <div class="property-label"><span class="versal property-click" title="{% trans "skosmos:memberOf_help" %}" >{{ 'skosmos:memberOf'|trans|upper }}</span></div>
+        <div class="property-value-column"><div class="property-value-wrapper">
+          <ul>
+          {% for group in concept.groupProperties %}
+              {% if (group.type == 'skosmos:memberOfSuper' and not superFound) or (group.type == 'skosmos:memberOf' and not superFound) %}<li>{% endif %}
+                <a class="versal" href="{{ group.uri | link_url(group.vocab,request.lang,'page',request.contentLang) }}">{% if group.notation %}<span class="versal">{{ group.notation }}</span>{% endif %}{{ group.label(request.contentLang) }}</a>
+                {% if group.type == 'skosmos:memberOfSuper' %}<span class="versal"> &#62; </span>{% endif %}
+              {% if group.type == 'skosmos:memberOf' or loop.last %}</li>{% endif %}
+              {% if group.type == 'skosmos:memberOfSuper' %}{% set superFound = true %}{% elseif group.type == 'skosmos:memberOf' and superFound %}{% set superFound = false %}{% endif %}
+          {% endfor %}
+          </ul>
+        </div></div>
+      </div>
+      {% endif %}
+      {% if concept.arrayProperties %}
+      <div class="row">
+        <div class="property-label"><span class="versal property-click" title="{% trans "skosmos:memberOfArray_help" %}" >{{ 'skosmos:memberOfArray'|trans|upper }}</span></div>
+        <div class="property-value-column"><div class="property-value-wrapper">
+          <ul>
+          {% for group in concept.arrayProperties %}
+            {% if group.type == 'skosmos:memberOfArray' %}
+                <li><a href="{{ group.uri | link_url(group.vocab,request.lang,'page',request.contentLang) }}">{% if group.notation %}<span class="versal">{{ group.notation }}</span>{% endif %}{{ group.label(request.contentLang) }}</a></li>
+            {% else %}
+            {% endif %}
+          {% endfor %}
+          </ul>
+        </div></div>
+      </div>
+      {% endif %}
+      {% if concept.foreignLabels %}
+      <div class="row">
+        <div class="property-label"><span class="versal property-click" title="{% trans "foreign prefLabel help" %}" >{{ 'foreign prefLabels'|trans|upper }}</span></div>
+        <div class="property-value-column"><div class="property-value-wrapper">
+          {% set prevlang = '' %}{# Only displaying the language when it appears for the very first time #}
+          {% for language,labels in concept.foreignLabels %}
+            {% for value in labels %}
+              <div class="row other-languages{% if prevlang != language %} first-of-language{% endif %}">
+                <div class="col-xs-6 versal{% if value.type == "skos:altLabel" %} replaced{%else %} versal-pref{% endif %}">{{ value.label }}</div>
+                <div class="col-xs-6 versal">{% if prevlang != language %}<p>{{ language }}</p>{% endif %}</div>
+              </div>
+              {% set prevlang = language %}
+            {% endfor %}
+          {% endfor %}
+          </div>
+        </div></div>
+      {% endif %}
+        <div class="row">
+            <div class="property-label"><span class="versal">URI</span></div>
+            <div class="property-value-column"><div class="property-value-wrapper"><span class="versal uri-input-box">{{ concept.uri }}</span></div></div>
+        </div>
+        <div class="row">
+            <div class="property-label"><span class="versal">{% trans %}Download this concept in SKOS format:{% endtrans %}</span></div>
+            <div class="property-value-column">
+<span class="versal concept-download-links"><a href="rest/v1/{% if concept.vocab %}{{ concept.vocab.id }}{% else %}{{ vocab.id }}{% endif %}/data?uri={{ concept.uri|url_encode }}&amp;format=application/rdf%2Bxml">RDF/XML</a>
+          <a href="rest/v1/{% if concept.vocab %}{{ concept.vocab.id }}{% else %}{{ vocab.id }}{% endif %}/data?uri={{ concept.uri|url_encode }}&amp;format=text/turtle">
+            TURTLE</a>
+          <a href="rest/v1/{% if concept.vocab %}{{ concept.vocab.id }}{% else %}{{ vocab.id }}{% endif %}/data?uri={{ concept.uri|url_encode }}&amp;format=application/ld%2Bjson">JSON-LD</a>
+        </span>{% if concept.date %}<span class="versal date-info">{{ concept.date }}</span>{% endif %}
+            </div>
+        </div>
+      </div>
+      {% set appendixProperties = concept.mappingProperties %}
+      {% if appendixProperties %}
+      <div class="concept-appendix">
+        {% for property in appendixProperties %} {# loop through ConceptProperty objects #}
+        <div class="row{% if concept.type == 'skosext:DeprecatedConcept' %} deprecated{% endif %}">
+          <div class="property-label"><span class="versal{% if not (property.type in property.description and '_help' in property.description) %} property-click" title="{{ property.description }}{% endif %}">{{ property.label|upper }}</span></div>
+          <div class="property-value-column">
+          {% for propval in property.values %} {# loop through ConceptPropertyValue objects #}
+            {% if propval.uri %} {# resources with URI #}
+              {% if propval.label %}
+              <div class="row">
+                <div class="col-xs-5">
+                  <a class="versal" href="{{ propval.uri | link_url(propval.exvocab, request.lang, 'page', request.contentLang) }}">{{ propval.label(request.contentLang) }}</a>
+                {% if propval.label.lang and (propval.label.lang != request.contentLang) or (explicit_langcodes and propval.label.lang) %}<span class="propertyvalue"> ({{ propval.label(request.contentLang).lang }})</span>{% endif %}
+                </div>
+                {% set vocabname = propval.vocabname %}
+                {% if vocabname %}
+                  <span class="appendix-vocab-label col-xs-7">{{ vocabname }}</span>
+                {% endif %}
+              </div>
+              {% endif %}
+            {% endif %}
+          {% endfor %}
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+      {% endif %}
+    </div>
+    {% endfor %}
+
+  {% else %}
+  <div class="alert alert-danger">
+    <h4>{% trans %}Error: Term "{{ term }}" not found in vocabulary!{% endtrans %}</h4>
+  </div>
+  {% endif %}
+{% else %}
+  <div class="alert alert-danger">
+    <h4>{% trans %}Error: Requested vocabulary not found!{% endtrans %}</h4>
+  </div>
+{% endif %}

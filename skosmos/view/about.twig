@@ -1,0 +1,19 @@
+{% extends "light.twig" %}
+{% block sidebar %}{% endblock %}
+{% block headernav %}{% endblock %}
+{% block content %}
+<div class="about-logo">
+  <h1>{% trans "About" %}</h1>
+</div>
+<div id="about">
+  <div class="about-content">
+    {% include ['about.inc', 'about.inc.dist']  %}
+  </div>
+</div>
+<div class="credits">
+  <p>{% if ServiceName != 'SERVICE_NAME' %}{{ ServiceName }}{% else %}Skosmos{% endif %} {% trans "layout designed by Hahmo" %}</p>
+</div>
+<div class="version">
+  <p>{% trans %}Skosmos version {{ version }}{% endtrans %}</p>
+</div>
+{% endblock %}
