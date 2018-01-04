@@ -1,43 +1,44 @@
-# Skosmos deploy skripta
+# Skosmos deploy script
 
-Ansible skripta z make wrapperjem za deploy Skosmos
+Ansible with make wrapper for deploying Skosmos  
+Instructions in Slovenian available [here](README_si.md)
 
-## Zahteve
+## Prerequisites
 
-Deploy preverjeno deluje z:
-- VirtualBox 5.1.26 (samo za `vagrant` okolje)
-- Vagrant 1.9.8 (samo za `vagrant` okolje)
+Minimum required versions:
+- VirtualBox 5.1.26 (only for `vagrant` environment)
+- Vagrant 1.9.8 (only for `vagrant` environment)
 - Ansible 2.4.1.0
 
-## Navodila
+## Installation
 
-### Argumenti
+### Environment argument
 
-Prek `ENVIRONMENT` spremenljivke določimo cilj deploya, privzeta vrednost je `vagrant`,
-ki postavi lokalno virtualko. Na voljo je še `os-xlab` (XLAB-ov Openstack). Spremenljivko
-nastavimo ali z `export` ukazom, ali kot prefix make ukazu.
+The `ENVIRONMENT` variable defines the deploy target, the default being `vagrant`,
+which sets up a local VM. `os-xlab` (XLABs Openstack) is the other option. The variable
+is set either with an  `export` export command, or as a prefix to a make command.
 ```
 export ENVIRONMENT=os-xlab
 make ...
-# ali
+# or
 ENVIRONMENT=os-xlab make ...
 ```
-Okolje `os-xlab` za ssh dostop (torej tudi za poganjanje Ansible) uporabi ključ
-`~/.ssh/id_rsa`, če se ključ nahaja drugje, je potrebno popraviti lokacijo v
+The `os-xlab` environment needs ssh access (both for remote administration and running Ansible),
+via an ssh key at `~/.ssh/id_rsa`, if your key is in a different location, it must be specified in
 `environments/os-xlab/os-xlab.mk`.
 
 ### Make targets
 
-- `create`: ustvari virtualko (ni implementirano v `os-xlab` okolju)
-- `delete`: izbriše virtualko (ni implementirano v `os-xlab` okolju)
-- `ssh`: ssh dostop do virtualke
-- `provision`: požene Ansible skripte za deploy
+- `create`: creates a VM (not implemented in `os-xlab` environment)
+- `delete`: destroys VM (not implemented in `os-xlab` environment)
+- `ssh`: ssh access to VM
+- `provision`: runs Ansible deploy scripts
 
-### Lokalni deploy
+### Local deploy
 
-Vagrant ustvari virtualko z naslovom `192.168.34.10`, katerega je mogoče spremeniti
-v datoteki `environments/vagrant/Vagrantfile`.
+Vagrant creates a VM with the IP `192.168.34.10`. The IP is changeable in the file
+`environments/vagrant/Vagrantfile`.
 
-### Uporaba
+## Use
 
-Po uspešni nastavitvi na virtualko, je Skosmos na voljo na `http://<ip ali FQDN naprave>/skosmos`
+After a successful deployment, Skosmos is available at `http://<ip or FQDN>/skosmos`
