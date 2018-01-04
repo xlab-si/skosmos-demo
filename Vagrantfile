@@ -61,7 +61,7 @@ Vagrant.configure("2") do |config|
     yum install -y php56-php.x86_64
     yum install -y java
     yum install -y ruby
-    sed -i -e 's/;date\.timezone\s=/date.timezone="Europe\/Ljubljana"/' /opt/remi/php56/root/etc/php.ini
+    sed -i -e 's/;date\.timezone\s=/date.timezone="Europe\\/Ljubljana"/' /opt/remi/php56/root/etc/php.ini
     mv /home/vagrant/fuseki.service /etc/systemd/system/
     ln -s /usr/bin/php56 /usr/bin/php
     ln -s /home/vagrant/skosmos /var/www/html/skosmos
