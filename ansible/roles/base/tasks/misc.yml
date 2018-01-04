@@ -1,0 +1,45 @@
+---
+- name: set timezone in php.ini
+  lineinfile:
+    path: /opt/remi/php56/root/etc/php.ini
+    regexp: '^;date.timezone'
+    line: date.timezone = "Europe/Ljubljana"
+
+- name: copy over fuseki systemd unit file
+  copy:
+    src: fuseki.service
+    dest: /etc/systemd/system/
+    owner: root
+    group: root
+    mode: u=rwx,g=rx,o=rx
+
+- name: reload systemd daemon
+  command: systemctl daemon-reload
+
+- name: create sites-enabled directory
+  file:
+    path: /etc/httpd/sites-enabled
+    owner: root
+    group: root
+    mode: u=rwx,g=rx,o=rx
+    state: directory
+
+- name: add additional conf path to Apache config
+  lineinfile:
+    path: /etc/httpd/conf/httpd.conf
+    line: 'IncludeOptional sites-enabled/*.conf'
+    state: present
+
+- name: copy vhost config for skosmos
+  copy:
+    src: skosmos.conf
+    dest: /etc/httpd/sites-enabled/
+    owner: root
+    group: root
+    mode: u=rwx,g=rx,o=rx
+
+- name: start Apache
+  service:
+    name: httpd
+    state: restarted
+    enabled: yes

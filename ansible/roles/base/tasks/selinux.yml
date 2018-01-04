@@ -1,0 +1,17 @@
+---
+- name: disable SELinux config
+  lineinfile:
+    dest: /etc/sysconfig/selinux
+    regexp: '^SELINUX='
+    line: 'SELINUX=disabled'
+
+- name: check SELinux current state
+  command: getenforce
+  register: selinux_current_state
+  # in case SELinux not installed
+  failed_when: False
+  changed_when: False
+
+- name: disable SELinux runtime
+  command: setenforce 0
+  when: selinux_current_state.stdout == 'Enforcing'

@@ -1,0 +1,31 @@
+---
+- name: create directories
+  file:
+    path: "{{ item }}"
+    owner: root
+    group: root
+    mode: u=rwx,g=rx,o=rx
+    state: directory
+  with_items:
+    - /var/lib/fuseki/backups
+    - /var/lib/fuseki/databases
+    - /var/lib/fuseki/system
+    - /var/lib/fuseki/system_files
+    - /var/log/fuseki
+    - /etc/fuseki/configuration
+
+- name: create symlinks
+  file:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+    mode: u=rwx,g=rx,o=rx
+    state: link
+  with_items:
+    - { src: '/var/lib/fuseki/backups', dest: '/etc/fuseki/backups' }
+    - { src: '/var/lib/fuseki/databases', dest: '/etc/fuseki/databases' }
+    - { src: '/var/lib/fuseki/system', dest: '/etc/fuseki/system' }
+    - { src: '/var/lib/fuseki/system_files', dest: '/etc/fuseki/system_files' }
+    - { src: '/var/log/fuseki', dest: '/etc/fuseki/logs' }
+    - { src: '/opt/apache-jena-fuseki-2.3.0', dest: '/opt/fuseki' }

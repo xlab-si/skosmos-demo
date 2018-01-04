@@ -1,0 +1,11 @@
+---
+- name: extract skosmos and fuseki
+  unarchive:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: "{{ item.owner }}"
+    group: "{{ item.group }}"
+    mode: u=rwx,g=rx,o=rx
+  with_items:
+    - { src: 'apache-jena-fuseki-2.3.0.tar.gz', dest: '/opt/', owner: 'apache', group: 'apache' }
+    - { src: 'skosmos.tar.gz', dest: '/var/www/html/', owner: 'root', group: 'root' }

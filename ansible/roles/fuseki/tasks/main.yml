@@ -1,0 +1,52 @@
+---
+- name: start fuseki
+  service:
+    name: fuseki
+    state: started
+    enabled: yes
+
+- name: wait for fuseki to start
+  wait_for:
+    port: 3030
+
+- name: create fuseki dataset
+  command: curl --data "dbName=skosmos&dbType=tdb" http://localhost:3030/$/datasets/
+
+- name: stop fuseki
+  service:
+    name: fuseki
+    state: stopped
+
+- name: copy dataset config
+  copy:
+    src: skosmos.ttl
+    dest: /etc/fuseki/configuration/
+    owner: root
+    group: root
+    mode: u=rwx,g=rx,o=rx
+
+- name: copy vocabulary configs
+  copy:
+    src: "{{ item }}"
+    dest: "/opt/fuseki/sets/"
+    owner: root
+    group: root
+    mode: u=rwx,g=rx,o=rx
+  with_items:
+    - stw.ttl
+    - unescothes.ttl
+
+- name: start fuseki
+  service:
+    name: fuseki
+    state: started
+
+- name: wait for fuseki to start
+  wait_for:
+    port: 3030
+
+- name: input vocabularies to fuseki
+  command: "/opt/fuseki/bin/s-put http://localhost:3030/skosmos/data {{ item.name }} {{ item.file }}"
+  with_items:
+    - { name: 'http://zbw.eu/stw/', file: '/opt/fuseki/sets/stw.ttl' }
+    - { name: 'http://skos.um.es/unescothes/', file: '/opt/fuseki/sets/unescothes.ttl' }

@@ -1,0 +1,35 @@
+---
+- name: install Apache (httpd)
+  yum:
+    name: httpd
+    state: latest
+
+- name: install remi repo
+  yum:
+    name: http://rpms.remirepo.net/enterprise/remi-release-7.rpm
+    state: latest
+
+- name: install php 5.6
+  yum:
+    name: php56
+    state: latest
+
+- name: install php mbstring
+  yum:
+    name: php56-php-mbstring
+    state: latest
+
+- name : install php package with mod_php
+  yum:
+    name: php56-php.x86_64
+    state: latest
+
+- name: install java
+  yum:
+    name: java
+    state: latest
+
+- name: install ruby
+  yum:
+    name: ruby
+    state: latest
